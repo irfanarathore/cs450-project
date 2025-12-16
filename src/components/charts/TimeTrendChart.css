@@ -1,0 +1,84 @@
+.chart-wrapper {
+  position: relative;
+}
+
+.chart-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.chart-subtitle {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.legend-item:hover {
+  background-color: #f0f0f0;
+}
+
+.legend-item.hidden {
+  opacity: 0.4;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.legend-label {
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.tooltip {
+  position: absolute;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+}
+
+.axis-label {
+  font-size: 0.9rem;
+  fill: #666;
+}
+
+.x-axis text,
+.y-axis text {
+  font-size: 0.85rem;
+  fill: #666;
+}
+
+.x-axis line,
+.y-axis line,
+.x-axis path,
+.y-axis path {
+  stroke: #ddd;
+}
+
