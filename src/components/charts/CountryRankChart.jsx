@@ -14,7 +14,7 @@ function CountryRankChart({ data, metric, setMetric }) {
         setDimensions({ width, height: 500 });
       }
     };
-    
+
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
@@ -33,13 +33,13 @@ function CountryRankChart({ data, metric, setMetric }) {
     // Aggregate data by country
     const aggregated = d3.rollup(
       data,
-      v => ({
-        avgResponseTime: d3.mean(v, d => d.response_time_hours),
-        avgCasualties: d3.mean(v, d => d.casualties),
-        avgEconomicLoss: d3.mean(v, d => d.economic_loss_usd) / 1000000, // In millions
-        count: v.length
+      (v) => ({
+        avgResponseTime: d3.mean(v, (d) => d.response_time_hours),
+        avgCasualties: d3.mean(v, (d) => d.casualties),
+        avgEconomicLoss: d3.mean(v, (d) => d.economic_loss_usd) / 1000000, // In millions
+        count: v.length,
       }),
-      d => d.country
+      (d) => d.country
     );
 
     // Convert to array
@@ -48,48 +48,60 @@ function CountryRankChart({ data, metric, setMetric }) {
       avgResponseTime: values.avgResponseTime,
       avgCasualties: values.avgCasualties,
       avgEconomicLoss: values.avgEconomicLoss,
-      count: values.count
+      count: values.count,
     }));
 
     // Sort by selected metric
-    const metricKey = metric === 'response_time_hours' ? 'avgResponseTime'
-      : metric === 'casualties' ? 'avgCasualties'
-      : 'avgEconomicLoss';
+    const metricKey =
+      metric === 'response_time_hours'
+        ? 'avgResponseTime'
+        : metric === 'casualties'
+        ? 'avgCasualties'
+        : 'avgEconomicLoss';
 
     chartData.sort((a, b) => b[metricKey] - a[metricKey]);
-    
+
     // Limit to top 15 countries for readability
     chartData = chartData.slice(0, 15);
 
     // Create SVG
-    const svg = d3.select(svgRef.current)
+    const svg = d3
+      .select(svgRef.current)
       .attr('width', dimensions.width)
       .attr('height', dimensions.height);
 
-    const g = svg.append('g')
+    const g = svg
+      .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Scales
-    const yScale = d3.scaleBand()
-      .domain(chartData.map(d => d.country))
+    const yScale = d3
+      .scaleBand()
+      .domain(chartData.map((d) => d.country))
       .range([0, height])
       .padding(0.2);
 
-    const xScale = d3.scaleLinear()
-      .domain([0, d3.max(chartData, d => d[metricKey])])
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(chartData, (d) => d[metricKey])])
       .nice()
       .range([0, width]);
 
     // Color scale based on values
-    const colorScale = d3.scaleSequential()
-      .domain([0, d3.max(chartData, d => d[metricKey])])
+    const colorScale = d3
+      .scaleSequential()
+      .domain([0, d3.max(chartData, (d) => d[metricKey])])
       .interpolator(d3.interpolateRdYlGn)
       .unknown('#ccc');
 
     // Reverse for response time (lower is better)
-    const getColor = metric === 'response_time_hours'
-      ? (value) => d3.interpolateRdYlGn(1 - value / d3.max(chartData, d => d[metricKey]))
-      : (value) => colorScale(value);
+    const getColor =
+      metric === 'response_time_hours'
+        ? (value) =>
+            d3.interpolateRdYlGn(
+              1 - value / d3.max(chartData, (d) => d[metricKey])
+            )
+        : (value) => colorScale(value);
 
     // Draw bars
     g.selectAll('.bar')
@@ -97,26 +109,28 @@ function CountryRankChart({ data, metric, setMetric }) {
       .join('rect')
       .attr('class', 'bar')
       .attr('x', 0)
-      .attr('y', d => yScale(d.country))
-      .attr('width', d => xScale(d[metricKey]))
+      .attr('y', (d) => yScale(d.country))
+      .attr('width', (d) => xScale(d[metricKey]))
       .attr('height', yScale.bandwidth())
-      .attr('fill', d => getColor(d[metricKey]))
-      .on('mouseover', function(event, d) {
+      .attr('fill', (d) => getColor(d[metricKey]))
+      .on('mouseover', function (event, d) {
         d3.select(this).attr('opacity', 0.7);
         const tooltip = d3.select(tooltipRef.current);
         tooltip
-          .html(`
+          .html(
+            `
             <strong>${d.country}</strong><br/>
             Events: ${d.count}<br/>
             Avg Response Time: ${d.avgResponseTime.toFixed(1)}h<br/>
             Avg Casualties: ${d.avgCasualties.toFixed(1)}<br/>
             Avg Economic Loss: $${d.avgEconomicLoss.toFixed(2)}M
-          `)
+          `
+          )
           .style('display', 'block')
-          .style('left', `${event.pageX + 10}px`)
-          .style('top', `${event.pageY - 28}px`);
+          .style('left', `${event.clientX + 10}px`)
+          .style('top', `${event.clientY - 28}px`);
       })
-      .on('mouseout', function() {
+      .on('mouseout', function () {
         d3.select(this).attr('opacity', 1);
         d3.select(tooltipRef.current).style('display', 'none');
       });
@@ -126,12 +140,12 @@ function CountryRankChart({ data, metric, setMetric }) {
       .data(chartData)
       .join('text')
       .attr('class', 'value-label')
-      .attr('x', d => xScale(d[metricKey]) + 5)
-      .attr('y', d => yScale(d.country) + yScale.bandwidth() / 2)
+      .attr('x', (d) => xScale(d[metricKey]) + 5)
+      .attr('y', (d) => yScale(d.country) + yScale.bandwidth() / 2)
       .attr('dy', '0.35em')
       .attr('font-size', '0.75rem')
       .attr('fill', '#333')
-      .text(d => d[metricKey].toFixed(1));
+      .text((d) => d[metricKey].toFixed(1));
 
     // Axes
     const xAxis = d3.axisBottom(xScale).ticks(6);
@@ -142,14 +156,15 @@ function CountryRankChart({ data, metric, setMetric }) {
       .attr('transform', `translate(0,${height})`)
       .call(xAxis);
 
-    g.append('g')
-      .attr('class', 'y-axis')
-      .call(yAxis);
+    g.append('g').attr('class', 'y-axis').call(yAxis);
 
     // Axis label
-    const metricLabel = metric === 'response_time_hours' ? 'Avg Response Time (hours)'
-      : metric === 'casualties' ? 'Avg Casualties per Event'
-      : 'Avg Economic Loss per Event ($M)';
+    const metricLabel =
+      metric === 'response_time_hours'
+        ? 'Avg Response Time (hours)'
+        : metric === 'casualties'
+        ? 'Avg Casualties per Event'
+        : 'Avg Economic Loss per Event ($M)';
 
     g.append('text')
       .attr('class', 'axis-label')
@@ -157,14 +172,13 @@ function CountryRankChart({ data, metric, setMetric }) {
       .attr('y', height + 45)
       .attr('text-anchor', 'middle')
       .text(metricLabel);
-
   }, [data, dimensions, metric]);
 
   return (
     <div className="chart-wrapper">
       <h3 className="chart-title">Country Performance Ranking</h3>
       <p className="chart-subtitle">Top 15 countries by selected metric</p>
-      
+
       <div className="controls-inline">
         <label htmlFor="ranking-metric">Rank by:</label>
         <select
@@ -178,7 +192,7 @@ function CountryRankChart({ data, metric, setMetric }) {
           <option value="economic_loss_usd">Avg Economic Loss per Event</option>
         </select>
       </div>
-      
+
       <svg ref={svgRef}></svg>
       <div ref={tooltipRef} className="tooltip"></div>
     </div>
@@ -186,4 +200,3 @@ function CountryRankChart({ data, metric, setMetric }) {
 }
 
 export default CountryRankChart;
-
