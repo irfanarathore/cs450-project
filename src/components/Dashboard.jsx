@@ -38,20 +38,12 @@ function Dashboard() {
 
   // Filter data based on current selections
   const filteredData = useMemo(() => {
-    // #region agent log
-    const startFilter = performance.now();
-    // #endregion
-    const result = data.filter(d => {
+    return data.filter(d => {
       const matchesYear = d.year >= yearRange[0] && d.year <= yearRange[1];
       const matchesType = selectedType === 'All' || d.disaster_type === selectedType;
       const matchesCountry = selectedCountry === 'All' || d.country === selectedCountry;
       return matchesYear && matchesType && matchesCountry;
     });
-    // #region agent log
-    const endFilter = performance.now();
-    fetch('http://127.0.0.1:7242/ingest/accdc406-803f-4a93-9fb7-def01f06e7cc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:42',message:'Data filtering performance',data:{totalData:data.length,filteredCount:result.length,filterTimeMs:endFilter-startFilter},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C,E'})}).catch(()=>{});
-    // #endregion
-    return result;
   }, [data, yearRange, selectedType, selectedCountry]);
 
   // Reset all filters
